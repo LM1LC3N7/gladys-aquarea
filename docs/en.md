@@ -1,61 +1,157 @@
-# Demo Devices Template
+# Panasonic Aquarea
 
-This is the user documentation of the integration. Gladys re-hosts this file
-and shows a permanent **Documentation** link to it in the Configuration screen
-(in the user's language, with English as the fallback) — it is when
-configuring that the user needs it most. Keep the short onboarding hints in
-the `section` blocks of the manifest `config_schema`; put the long
-step-by-step (screenshots, troubleshooting…) here.
+This integration brings your **Panasonic Aquarea** air-to-water heat pump into
+Gladys, in one of two ways:
+
+- **Aquarea Smart Cloud**, the Panasonic cloud, for a heat pump connected with
+  a CZ-TAW1 or CZ-TAW1B adapter and visible in the Panasonic Comfort Cloud app;
+- **HeishaMon**, a small open source board plugged on the CN-CNT port of the
+  heat pump, read locally: through your MQTT broker, or directly through its
+  web page.
+
+You get the temperatures and setpoints of the heating zones, the hot water
+tank, the outdoor temperature, the mode, the quiet and powerful modes, the
+defrost, the error code (also a scene trigger) and the energy for the energy
+dashboards of Gladys. Unofficial, not affiliated with Panasonic.
+
+> **Development version (0.1).** Developed and tested without a heat pump: the
+> Panasonic cloud and HeishaMon were simulated from the documentation of the
+> projects that use them (Home Assistant integrations, HeishaMon). Your
+> feedback is welcome on the GitHub repository.
 
 ## What you get
 
-Six demo devices show up after installation: a weather station (real data
-from Open-Meteo), a switch, a dimmable light, a smart plug with power
-metering, a motion sensor and a camera.
+One Gladys device per heat pump, with the features the heat pump reports:
 
-## Configuration
+| Feature                                      | Cloud | HeishaMon | In Gladys                                         |
+| -------------------------------------------- | :---: | :-------: | ------------------------------------------------- |
+| Heat pump on/off                             |   ✓   |     ✓     | a switch                                          |
+| Heating mode: off, heating, cooling, auto    |   ✓   |     ✓     | a thermostat mode                                 |
+| Activity: idle, heating, cooling             |   ✓   |     ✓     | the thermostat operating state                    |
+| Zone 1 and zone 2 temperature                |   ✓   |     ✓     | temperatures                                      |
+| Zone setpoints, heating and cooling          |   ✓   |     ✓     | thermostat setpoints (a shift on a heating curve) |
+| Hot water tank temperature and setpoint      |   ✓   |     ✓     | a temperature and a water heater setpoint         |
+| Heating the hot water                        |   ✓   |     ✓     | the water heater "heating" state                  |
+| Outdoor temperature                          |   ✓   |     ✓     | a temperature (outside the room average)          |
+| Water inlet and outlet temperatures          |       |     ✓     | temperatures (outside the room average)           |
+| Compressor frequency (Hz)                    |       |     ✓     | a value                                           |
+| Power consumed (W) and energy consumed (kWh) |       |     ✓     | power and energy index (energy dashboards)        |
+| Heat produced (W)                            |       |     ✓     | a value in W                                      |
+| Consumption per day (kWh)                    |   ✓   |           | a daily consumption (energy dashboards)           |
+| Quiet mode (off, levels 1 to 3)              |   ✓   |     ✓     | a list you can change                             |
+| Powerful mode (off, 30, 60, 90 min)          |   ✓   |     ✓     | a list (read only for now)                        |
+| Defrosting                                   |   ✓   |     ✓     | on/off (read only)                                |
+| Error code (H62, F12…)                       |   ✓   |     ✓     | a text, and the "Heat pump error" scene trigger   |
 
-1. Open the **Configuration** tab of the integration.
-2. Set the **latitude** and **longitude** the demo weather station should
-   observe (they default to Paris), and pick your temperature unit.
-   The **refresh interval** sets how often the weather station and the
-   plug's power are read: every 5 minutes by default, every minute at most.
-3. Save: the devices appear in the **Discovery** tab, ready to be added.
+## Requirements
 
-The **Prefer the local connection** toggle drives the demo plug: it reports
-the channel it actually uses as a badge (local or cloud), with an orange dot
-when it runs degraded (local refused, cloud fallback).
+- Gladys Assistant 5.2.0 or later.
+- **Cloud**: your Panasonic ID (e-mail address and password), with the heat
+  pump visible in the **Panasonic Comfort Cloud** app; Gladys must reach the
+  Internet.
+- **HeishaMon**: a HeishaMon board on the heat pump, connected to your Wi-Fi.
+  Best with an MQTT broker (Mosquitto…) the board publishes to; without one,
+  Gladys reads the board's web page.
 
-## Actions
+## Installation
 
-- **Test the weather provider** — performs a live request to Open-Meteo and
-  shows the current temperature and humidity under the button.
-- **Identify a device** — pick one of your devices in the list and it will
-  signal itself (the demo light "blinks" in the logs).
+### With Aquarea Smart Cloud
 
-## Scenes
+1. Check that the heat pump shows up in the Panasonic Comfort Cloud app with
+   your Panasonic ID.
+2. In Gladys, open the integration, **Configuration**, section **Aquarea Smart
+   Cloud**: type your **Panasonic ID** and its **password**, save.
+3. If your Panasonic ID uses **two-factor authentication**, the status asks for
+   a code: click **Send a two-factor code**, type the current code of your
+   authenticator app.
+4. Open the **Discovery** tab: your heat pump is there, add it.
 
-The integration adds its own cards to the scene editor (Gladys 5.1 or
-later), under the **Integrations** category:
+### With HeishaMon and an MQTT broker
 
-- **Motion detected** (trigger) — starts the scene when a demo motion sensor
-  sees something move. Optionally pick the sensor and what moved (person,
-  animal); left empty, any detection matches. The following actions can
-  read what moved with `{{triggerEvent.data.target}}`.
-- **Identify a device** (action) — makes the chosen device signal itself.
-  It returns whether the device could signal itself, so the following
-  actions can depend on it.
+1. In the web page of HeishaMon (**Settings**), check the **MQTT server** (your
+   broker) and the **MQTT topic base** (`panasonic_heat_pump` by default).
+2. In Gladys, section **HeishaMon**: type the address of the broker as seen
+   from the Gladys machine (`mqtt://192.168.1.10:1883`, not localhost), the
+   base topic, and the user name and password of the broker if it has some.
+   Several heat pumps: separate their base topics with commas.
+3. **Discovery** tab: the heat pump appears at once (HeishaMon keeps its last
+   values on the broker), add it.
 
-## Dashboard
+### With HeishaMon, without a broker
 
-Add the **Demo status** widget to a dashboard: it shows the live
-temperature of the weather station and the power of the office plug, the
-connection the plug currently uses (orange when degraded) and the observed
-location. Its **Identify the light** button makes the demo light signal
-itself.
+Type the address of the board itself in **Address of the MQTT broker or of
+HeishaMon**: `http://192.168.1.30`. Gladys reads its page every 30 seconds by
+default (option below) and sends the commands to it.
+
+The **Test the connection** button reads the heat pump with the saved
+configuration and sums up what it found.
+
+## Options
+
+- **Interval between two cloud reads**: 2 minutes by default (1 minute to 1
+  hour). Panasonic limits the calls of an account: do not go faster than
+  needed. The consumption per day is read once an hour.
+- **Application version (advanced)**: leave empty. Only if Panasonic refuses
+  the version announced by the integration, type the version of the Comfort
+  Cloud app (for example `4.3.0`).
+- **Verify the TLS certificate**: for an `mqtts://` broker with a self-signed
+  certificate, turn it off.
+- **Interval between two reads of the HeishaMon page**: without a broker only.
+- **Minimum interval between two readings of a measurement**: 30 seconds by
+  default. Temperatures and powers change every few seconds on a running heat
+  pump: Gladys keeps the last one at this pace. Modes, setpoints and on/off are
+  never delayed.
+- **Language of the feature names**: French or English.
+- **Prefer the local connection** (switch of Gladys): when both the cloud and
+  HeishaMon are filled in, on = HeishaMon, off = the cloud. A heat pump read
+  through the cloud and through HeishaMon makes two different devices in
+  Gladys.
+
+## Good to know
+
+- **The mode** is the one of the rooms: **Off** stops the room heating but
+  keeps the hot water if the heat pump makes some (HeishaMon: "DHW only";
+  cloud: zones off, tank kept). To stop everything, use **Heat pump on/off**.
+  Choosing heating, cooling or auto keeps the hot water as it was and switches
+  the heat pump on if needed.
+- **Setpoints on a heating curve**: when a zone follows a compensation curve,
+  its setpoint is a **shift** of the curve, from −5 to +5 °C (named "shift
+  (curve)"); in direct mode it is the water temperature. On HeishaMon, a zone
+  regulated by a room thermostat in direct mode keeps its setpoint in the curve
+  settings: not supported yet.
+- **Cooling** is offered on every HeishaMon heat pump (HeishaMon does not tell
+  whether the installer enabled it); on the cloud, only when the heat pump
+  supports it. A heat pump without cooling ignores the cooling commands.
+- **Energy**: through HeishaMon, the power consumed (heating, cooling and hot
+  water, or the more precise values of the recent heat pumps) is added up into
+  an energy index in kWh, kept across restarts: add it to your energy
+  dashboards. Through the cloud, Panasonic gives the consumption per day: each
+  finished day is sent the next hour (the current day is not complete).
+- **The error trigger** fires when the heat pump reports a **new** error code,
+  not for the one already there when the integration starts. Filter on the heat
+  pump and on a code (H62…) in the scene.
+- **Badges**: an orange dot when the cloud adapter does not answer live (the
+  values are then the copy the cloud kept), when HeishaMon is offline, or when
+  it sent nothing for 15 minutes.
 
 ## Troubleshooting
 
-The integration logs everything it does: check the integration logs from the
-Gladys UI (or `docker logs` on the host) with `LOG_LEVEL=debug` for the full
-detail.
+- **"Panasonic refused the Panasonic ID or the password"**: check them in the
+  Comfort Cloud app, then save the configuration again. The integration does
+  not retry on its own, so as not to lock your account.
+- **"new terms of use"**: open the Panasonic Comfort Cloud app and accept them.
+- **The heat pump is missing from the cloud**: the integration signs in like
+  the Panasonic Comfort Cloud app: the heat pump must show up there with the
+  same Panasonic ID.
+- **HeishaMon: "no value on panasonic_heat_pump/main/…"**: the broker answers,
+  but HeishaMon does not publish there: check its MQTT server and base topic.
+- **HeishaMon is offline**: the board sent its last will (power, Wi-Fi).
+
+## Privacy
+
+- **Cloud**: the integration talks only to Panasonic
+  (`authglb.digital.panasonic.com`, `accsmart.panasonic.com`) and reads the
+  version of the Comfort Cloud app on Google Play. Your password is sent to
+  Panasonic only at a login; the session (tokens) is kept in the volume of the
+  integration, never the password.
+- **HeishaMon**: everything stays on your local network.

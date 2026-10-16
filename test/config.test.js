@@ -1,33 +1,71 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { normalizeConfig, DEFAULT_CONFIG } from '../src/config.js';
+import { DEFAULTS, normalizeConfig, parseHeishamonUrl, parseTopics } from '../src/config.js';
 
-test('normalizeConfig returns the defaults when called with no argument', () => {
-  assert.deepEqual(normalizeConfig(), DEFAULT_CONFIG);
+test('the HeishaMon address: a broker or the board', () => {
+  assert.deepEqual(parseHeishamonUrl('192.168.1.10'), {
+    kind: 'mqtt',
+    url: 'mqtt://192.168.1.10',
+    host: '192.168.1.10',
+  });
+  assert.deepEqual(parseHeishamonUrl('mqtts://broker.lan:8883'), {
+    kind: 'mqtt',
+    url: 'mqtts://broker.lan:8883',
+    host: 'broker.lan-8883',
+  });
+  assert.deepEqual(parseHeishamonUrl('http://192.168.1.30/json'), {
+    kind: 'http',
+    url: 'http://192.168.1.30',
+    host: '192.168.1.30',
+  });
+  assert.deepEqual(parseHeishamonUrl(''), { error: 'empty' });
+  assert.deepEqual(parseHeishamonUrl('ftp://x'), { error: 'invalid' });
+  assert.deepEqual(parseHeishamonUrl('mqtt://user:pw@broker'), { error: 'credentials' });
 });
 
-test('normalizeConfig keeps user values over the defaults', () => {
-  const config = normalizeConfig({ latitude: 45.5, longitude: -73.6, unit: 'fahrenheit' });
-  assert.equal(config.latitude, 45.5);
-  assert.equal(config.longitude, -73.6);
-  assert.equal(config.unit, 'fahrenheit');
+test('the base topics: one or several, never a wildcard', () => {
+  assert.deepEqual(parseTopics(''), ['panasonic_heat_pump']);
+  assert.deepEqual(parseTopics(' /pac1/ , pac2,pac2 '), ['pac1', 'pac2']);
+  assert.deepEqual(parseTopics('pac/#'), ['panasonic_heat_pump']);
 });
 
-test('normalizeConfig coerces numeric strings coming from a form', () => {
-  const config = normalizeConfig({ latitude: '48.8', longitude: '2.3', poll_frequency: '600' });
-  assert.equal(config.latitude, 48.8);
-  assert.equal(config.longitude, 2.3);
-  assert.equal(config.poll_frequency, 600);
-  assert.equal(typeof config.poll_frequency, 'number');
+test('the defaults; nothing filled: nothing to start', () => {
+  const c = normalizeConfig();
+  assert.equal(c.source, null);
+  assert.equal(c.error, 'empty');
+  assert.equal(c.cloud.interval, DEFAULTS.cloud_interval);
+  assert.equal(c.sensorInterval, 30);
+  assert.equal(c.language, 'fr');
+  assert.deepEqual(c.heishamon.topics, ['panasonic_heat_pump']);
 });
 
-test('normalizeConfig falls back to the default for a missing numeric field', () => {
-  const config = normalizeConfig({ unit: 'celsius' });
-  assert.equal(config.poll_frequency, DEFAULT_CONFIG.poll_frequency);
+test('the source: the filled section; both filled, the "prefer local" switch decides', () => {
+  const cloud = { panasonic_id: ' a@b.c ', panasonic_password: 'p' };
+  const local = { heishamon_url: 'mqtt://broker' };
+  assert.equal(normalizeConfig(cloud).source, 'cloud');
+  assert.equal(normalizeConfig(cloud).cloud.username, 'a@b.c');
+  assert.equal(normalizeConfig(local).source, 'heishamon');
+  assert.equal(normalizeConfig({ ...cloud, ...local }).source, 'heishamon');
+  assert.equal(normalizeConfig({ ...cloud, ...local, GLADYS_PREFER_LOCAL: false }).source, 'cloud');
+  assert.equal(normalizeConfig({ ...local, GLADYS_PREFER_LOCAL: false }).source, 'heishamon');
+  assert.equal(normalizeConfig({ panasonic_id: 'a@b.c' }).error, 'cloud-incomplete');
+  const bad = normalizeConfig({ heishamon_url: 'ftp://x' });
+  assert.deepEqual([bad.source, bad.error], ['heishamon', 'invalid']);
 });
 
-test('GLADYS_PREFER_LOCAL defaults to true and only an explicit false disables it', () => {
-  assert.equal(normalizeConfig().GLADYS_PREFER_LOCAL, true);
-  assert.equal(normalizeConfig({ GLADYS_PREFER_LOCAL: true }).GLADYS_PREFER_LOCAL, true);
-  assert.equal(normalizeConfig({ GLADYS_PREFER_LOCAL: false }).GLADYS_PREFER_LOCAL, false);
+test('numbers are bounded, unknown values fall back', () => {
+  const c = normalizeConfig({
+    cloud_interval: 5,
+    http_interval: 'abc',
+    sensor_interval: 9999,
+    language: 'de',
+    verify_certificate: false,
+    app_version: ' 4.3.0 ',
+  });
+  assert.equal(c.cloud.interval, 60);
+  assert.equal(c.heishamon.interval, 30);
+  assert.equal(c.sensorInterval, 600);
+  assert.equal(c.language, 'fr');
+  assert.equal(c.heishamon.verifyCertificate, false);
+  assert.equal(c.cloud.appVersion, '4.3.0');
 });

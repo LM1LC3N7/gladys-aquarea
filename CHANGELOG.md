@@ -12,44 +12,23 @@ the notes of the version's GitHub Release.
 
 ### Added
 
-- A working example of scene triggers, scene actions and dashboard widgets
-  (Gladys 5.1.0 or later).
-- `CHANGELOG.md`, rolled by the Release workflow.
-- A GitHub Release for every version, with its changelog section as notes: the
-  Gladys Supervision page links each version to the repository's releases.
-- CI runs the tests on Node 22 and 24, and builds the Docker image.
-- Dependabot keeps the npm dependencies and the GitHub Actions up to date.
-- `SECURITY.md` (how to report a vulnerability) and `CLAUDE.md` (project rules
-  for contributors and coding assistants).
-- Manifest tests: `version` matches `package.json`, `docker_image` is tagged
-  with it, descriptions hold 10 to 100 characters, placeholders are
-  multi-language objects.
-- The latitude and longitude fields show an example value as placeholder.
-
-### Changed
-
-- Node.js 22 or later is required (Node 20 is end-of-life).
-- Integration SDK 0.15.0. The tests now run against the fake Gladys of the
-  SDK, which refuses the payloads Gladys refuses.
-- The refresh interval is one minute minimum, the fastest Gladys polls a
-  device. The plug's power is only sent when it changes, and every 30
-  minutes otherwise.
-
-### Fixed
-
-- Gladys refused the devices of the Discovery tab: the weather station and
-  the plug declared their poll frequency in seconds instead of one of the
-  values Gladys accepts, and were never polled. They now poll every minute,
-  and the readings follow the refresh interval of the configuration.
-
-- The release commit no longer fails `npm run format:check`: the Release
-  workflow updates the manifest `version` and `docker_image` in place instead
-  of re-printing the whole file with `jq`.
-- The integration can write to `/data`: the image creates the directory owned
-  by the `node` user, a new Docker volume was owned by root.
-- A sub-container running the integration's own image follows it to the new
-  tag at each release, as well as in the manifest of the build summary: it kept
-  the previous tag, which may not exist on the registry. Sub-containers on a
-  third-party image (a broker, a database...) keep theirs.
-
-[Unreleased]: https://github.com/GladysAssistant/integration-template-js/commits/main
+- Panasonic Aquarea heat pumps through Aquarea Smart Cloud: Panasonic ID login
+  as the Comfort Cloud app does it (two-factor accounts send their code with a
+  button), the session kept between restarts (never the password), every
+  heat pump of the account in Discovery, a status read every 2 minutes (the
+  copy kept by the cloud when the adapter does not answer live).
+- Panasonic Aquarea heat pumps through HeishaMon: its topics on your MQTT
+  broker (one or several base topics, retained values, last will, the extra
+  power block of the newer heat pumps), or its web page without a broker.
+- One device per heat pump: on/off, heating mode (off, heating, cooling, auto;
+  off keeps the hot water), activity, zone 1 and 2 temperatures and setpoints
+  (a shift on a heating curve, or a water temperature), hot water tank
+  temperature, setpoint and heating, outdoor temperature, quiet mode, powerful
+  mode, defrost, error code; through HeishaMon also the water inlet and outlet
+  temperatures, compressor frequency, power consumed and heat produced.
+- Energy dashboards: the consumption per day of the cloud (finished days), or
+  an energy index in kWh computed from the power HeishaMon reports.
+- "Heat pump error" scene trigger: a new error code (H62, F12…).
+- Transport badges: cloud or local, degraded when the adapter does not answer
+  live, when HeishaMon is offline or silent for 15 minutes.
+- "Test the connection" button, feature names in French or English.

@@ -1,177 +1,273 @@
 {
   "manifest_version": 1,
   "type": "device",
-  "name": "Demo Devices Template",
+  "name": "Panasonic Aquarea",
   "description": {
-    "en": "Starter template showing sensors, a switch, a dimmable light and a smart plug.",
-    "fr": "Template de démarrage : capteurs, interrupteur, lampe variable et prise connectée."
+    "en": "Panasonic Aquarea heat pumps via Aquarea Smart Cloud or HeishaMon: temperatures, modes, energy.",
+    "fr": "PAC Panasonic Aquarea via Aquarea Smart Cloud ou HeishaMon : températures, modes, énergie."
   },
-  "version": "1.0.0",
-  "docker_image": "ghcr.io/gladysassistant/integration-template-js:1.0.0",
-  "gladys_version": ">=5.1.0",
-  "cover_image": "https://raw.githubusercontent.com/GladysAssistant/integration-template-js/master/cover.png",
-  "categories": ["lighting", "security", "environment"],
-  "transports": ["local", "cloud"],
+  "version": "0.1.0",
+  "docker_image": "ghcr.io/lm1lc3n7/gladys-aquarea:0.1.0",
+  "gladys_version": ">=5.2.0",
+  "cover_image": "https://raw.githubusercontent.com/LM1LC3N7/gladys-aquarea/main/cover.png",
+  "categories": ["climate", "energy"],
+  "transports": ["cloud", "local"],
   "config_schema": [
     {
       "key": "intro",
       "type": "section",
-      "label": { "en": "Getting started", "fr": "Pour commencer" },
+      "label": {
+        "en": "Your Aquarea heat pump in Gladys",
+        "fr": "Votre pompe à chaleur Aquarea dans Gladys"
+      },
       "description": {
-        "en": "The demo weather station reads real data from the free Open-Meteo API: pick the coordinates to observe. No account, no API key.",
-        "fr": "La station météo de démonstration lit de vraies données via l'API gratuite Open-Meteo : choisissez les coordonnées à observer. Pas de compte, pas de clé d'API."
+        "en": "Two ways to reach the heat pump: the Panasonic cloud (Aquarea Smart Cloud, with a CZ-TAW1 or CZ-TAW1B adapter), or a HeishaMon board on its CN-CNT port, read locally through your MQTT broker or its own web page. Fill in one of the two sections below. With both, the \"Prefer the local connection\" switch of Gladys picks HeishaMon when on, the cloud when off. You get the zone temperatures and setpoints, the hot water tank, the outdoor temperature, the mode, quiet and powerful modes, defrost, the error code (also a scene trigger) and the energy. Unofficial, not affiliated with Panasonic.",
+        "fr": "Deux façons de joindre la pompe à chaleur : le cloud Panasonic (Aquarea Smart Cloud, avec un adaptateur CZ-TAW1 ou CZ-TAW1B), ou une carte HeishaMon sur son port CN-CNT, lue en local par votre broker MQTT ou par sa propre page web. Remplissez l'une des deux sections ci-dessous. Avec les deux, l'interrupteur « Préférer la connexion locale » de Gladys choisit HeishaMon s'il est activé, le cloud sinon. Vous obtenez les températures et consignes des zones, le ballon d'eau chaude, la température extérieure, le mode, les modes silencieux et puissance, le dégivrage, le code erreur (aussi déclencheur de scène) et l'énergie. Non officiel, sans lien avec Panasonic."
       },
       "links": [
         {
-          "url": "https://open-meteo.com/en/docs",
-          "label": { "en": "Open-Meteo documentation", "fr": "Documentation Open-Meteo" }
+          "url": "https://github.com/LM1LC3N7/gladys-aquarea/blob/main/docs/fr.md",
+          "label": { "en": "Guide (French)", "fr": "Guide (français)" }
+        },
+        {
+          "url": "https://github.com/LM1LC3N7/gladys-aquarea/blob/main/docs/en.md",
+          "label": { "en": "Guide (English)", "fr": "Guide (anglais)" }
+        },
+        {
+          "url": "https://github.com/Egyras/HeishaMon",
+          "label": { "en": "The HeishaMon project", "fr": "Le projet HeishaMon" }
         }
       ]
     },
     {
-      "key": "latitude",
-      "type": "number",
-      "label": { "en": "Latitude", "fr": "Latitude" },
-      "description": {
-        "en": "Latitude used for the demo weather sensor.",
-        "fr": "Latitude utilisée par le capteur météo de démonstration."
+      "key": "cloud",
+      "type": "section",
+      "label": {
+        "en": "Aquarea Smart Cloud (Panasonic cloud)",
+        "fr": "Aquarea Smart Cloud (cloud Panasonic)"
       },
-      "placeholder": { "en": "e.g. 48.8566", "fr": "ex. 48.8566" },
-      "required": true,
-      "default": 48.8566,
-      "min": -90,
-      "max": 90
+      "description": {
+        "en": "The Panasonic ID you use in the Panasonic Comfort Cloud app, where your heat pump shows up. The integration signs in like the app and reads each heat pump every few minutes: Panasonic limits the calls of an account. If your Panasonic ID asks for a two-factor code, save the configuration, then type the current code with the \"Send a two-factor code\" button below.",
+        "fr": "Le Panasonic ID que vous utilisez dans l'application Panasonic Comfort Cloud, où apparaît votre pompe à chaleur. L'intégration se connecte comme l'application et lit chaque pompe à chaleur toutes les quelques minutes : Panasonic limite les appels d'un compte. Si votre Panasonic ID demande un code de double authentification, enregistrez la configuration, puis saisissez le code du moment avec le bouton « Envoyer un code de double authentification » ci-dessous."
+      }
     },
     {
-      "key": "longitude",
+      "key": "panasonic_id",
+      "type": "string",
+      "label": { "en": "Panasonic ID (e-mail address)", "fr": "Panasonic ID (adresse e-mail)" },
+      "placeholder": { "en": "name@example.com", "fr": "nom@exemple.fr" },
+      "required": false
+    },
+    {
+      "key": "panasonic_password",
+      "type": "secret",
+      "label": { "en": "Password of the Panasonic ID", "fr": "Mot de passe du Panasonic ID" },
+      "required": false
+    },
+    {
+      "key": "cloud_interval",
       "type": "number",
-      "label": { "en": "Longitude", "fr": "Longitude" },
-      "description": {
-        "en": "Longitude used for the demo weather sensor.",
-        "fr": "Longitude utilisée par le capteur météo de démonstration."
+      "label": {
+        "en": "Interval between two cloud reads (s)",
+        "fr": "Intervalle entre deux lectures du cloud (s)"
       },
-      "placeholder": { "en": "e.g. 2.3522", "fr": "ex. 2.3522" },
-      "required": true,
-      "default": 2.3522,
-      "min": -180,
-      "max": 180
-    },
-    {
-      "key": "unit",
-      "type": "select",
-      "label": { "en": "Temperature unit", "fr": "Unité de température" },
-      "required": false,
-      "default": "celsius",
-      "options": [
-        { "value": "celsius", "label": { "en": "Celsius", "fr": "Celsius" } },
-        { "value": "fahrenheit", "label": { "en": "Fahrenheit", "fr": "Fahrenheit" } }
-      ]
-    },
-    {
-      "key": "poll_frequency",
-      "type": "number",
-      "label": { "en": "Refresh interval (s)", "fr": "Intervalle de rafraîchissement (s)" },
       "description": {
-        "en": "How often sensors are polled, in seconds (one minute minimum).",
-        "fr": "Fréquence d'interrogation des capteurs, en secondes (une minute minimum)."
+        "en": "Each heat pump is read at this pace (2 minutes, like the Home Assistant integration). The consumption per day is read once an hour.",
+        "fr": "Chaque pompe à chaleur est lue à ce rythme (2 minutes, comme l'intégration Home Assistant). La consommation par jour est lue une fois par heure."
       },
       "required": false,
-      "default": 300,
+      "default": 120,
       "min": 60,
       "max": 3600
+    },
+    {
+      "key": "app_version",
+      "type": "string",
+      "label": {
+        "en": "Application version (advanced)",
+        "fr": "Version de l'application (avancé)"
+      },
+      "description": {
+        "en": "Leave empty: the integration announces the current version of the Comfort Cloud app, read from the app stores. Type one (e.g. 4.3.0) only if Panasonic refuses the version.",
+        "fr": "Laissez vide : l'intégration annonce la version actuelle de l'application Comfort Cloud, lue dans les magasins d'applications. Saisissez-en une (ex. 4.3.0) seulement si Panasonic refuse la version."
+      },
+      "placeholder": { "en": "automatic", "fr": "automatique" },
+      "required": false
+    },
+    {
+      "key": "heishamon",
+      "type": "section",
+      "label": { "en": "HeishaMon (local)", "fr": "HeishaMon (local)" },
+      "description": {
+        "en": "HeishaMon is a small open source board plugged on the CN-CNT port of the heat pump. Usually it publishes on your MQTT broker: type the address of the broker (mqtt://192.168.1.10:1883) and the base topic set in HeishaMon (panasonic_heat_pump by default; several heat pumps: separate their base topics with commas). Without a broker, type the address of the board itself (http://192.168.1.30): Gladys then reads its page at the interval below.",
+        "fr": "HeishaMon est une petite carte libre branchée sur le port CN-CNT de la pompe à chaleur. En général elle publie sur votre broker MQTT : saisissez l'adresse du broker (mqtt://192.168.1.10:1883) et le topic de base réglé dans HeishaMon (panasonic_heat_pump par défaut ; plusieurs pompes à chaleur : séparez leurs topics de base par des virgules). Sans broker, saisissez l'adresse de la carte elle-même (http://192.168.1.30) : Gladys lit alors sa page à l'intervalle ci-dessous."
+      }
+    },
+    {
+      "key": "heishamon_url",
+      "type": "string",
+      "label": {
+        "en": "Address of the MQTT broker or of HeishaMon",
+        "fr": "Adresse du broker MQTT ou de HeishaMon"
+      },
+      "placeholder": { "en": "mqtt://192.168.1.10:1883", "fr": "mqtt://192.168.1.10:1883" },
+      "required": false
+    },
+    {
+      "key": "heishamon_topic",
+      "type": "string",
+      "label": { "en": "Base topic of HeishaMon", "fr": "Topic de base de HeishaMon" },
+      "placeholder": { "en": "panasonic_heat_pump", "fr": "panasonic_heat_pump" },
+      "required": false,
+      "default": "panasonic_heat_pump"
+    },
+    {
+      "key": "mqtt_username",
+      "type": "string",
+      "label": { "en": "Broker user name", "fr": "Utilisateur du broker" },
+      "required": false
+    },
+    {
+      "key": "mqtt_password",
+      "type": "secret",
+      "label": { "en": "Broker password", "fr": "Mot de passe du broker" },
+      "required": false
+    },
+    {
+      "key": "verify_certificate",
+      "type": "boolean",
+      "label": {
+        "en": "Verify the TLS certificate (mqtts)",
+        "fr": "Vérifier le certificat TLS (mqtts)"
+      },
+      "description": {
+        "en": "Turn off only for a broker with a self-signed certificate on your local network.",
+        "fr": "À désactiver seulement pour un broker au certificat auto-signé sur votre réseau local."
+      },
+      "required": false,
+      "default": true
+    },
+    {
+      "key": "http_interval",
+      "type": "number",
+      "label": {
+        "en": "Interval between two reads of the HeishaMon page (s)",
+        "fr": "Intervalle entre deux lectures de la page HeishaMon (s)"
+      },
+      "description": {
+        "en": "Only without a broker (http:// address). Through MQTT, HeishaMon sends each change at once.",
+        "fr": "Seulement sans broker (adresse http://). Par MQTT, HeishaMon envoie chaque changement aussitôt."
+      },
+      "required": false,
+      "default": 30,
+      "min": 5,
+      "max": 600
+    },
+    {
+      "key": "general",
+      "type": "section",
+      "label": { "en": "In Gladys", "fr": "Dans Gladys" },
+      "description": {
+        "en": "How the values reach Gladys.",
+        "fr": "Comment les valeurs arrivent dans Gladys."
+      }
+    },
+    {
+      "key": "sensor_interval",
+      "type": "number",
+      "label": {
+        "en": "Minimum interval between two readings of a measurement (s)",
+        "fr": "Intervalle minimum entre deux mesures d'une grandeur (s)"
+      },
+      "description": {
+        "en": "Temperatures, powers and the compressor frequency change every few seconds on a running heat pump: Gladys keeps the last reading at this pace. Modes, setpoints and on/off are never delayed.",
+        "fr": "Températures, puissances et fréquence du compresseur changent toutes les quelques secondes sur une pompe à chaleur en marche : Gladys garde la dernière mesure à ce rythme. Modes, consignes et marche/arrêt ne sont jamais retardés."
+      },
+      "required": false,
+      "default": 30,
+      "min": 0,
+      "max": 600
+    },
+    {
+      "key": "language",
+      "type": "select",
+      "label": {
+        "en": "Language of the feature names",
+        "fr": "Langue des noms des fonctionnalités"
+      },
+      "description": {
+        "en": "Names given to the features of the heat pump in Discovery (Outdoor temperature, Hot water setpoint…).",
+        "fr": "Noms donnés aux fonctionnalités de la pompe à chaleur dans Découverte (Température extérieure, Consigne eau chaude…)."
+      },
+      "required": false,
+      "default": "fr",
+      "options": [
+        { "value": "fr", "label": { "en": "French", "fr": "Français" } },
+        { "value": "en", "label": { "en": "English", "fr": "Anglais" } }
+      ]
     }
   ],
   "actions": [
     {
-      "key": "test_weather",
-      "label": { "en": "Test the weather provider", "fr": "Tester le fournisseur météo" },
-      "timeout_seconds": 30
+      "key": "test_connection",
+      "label": { "en": "Test the connection", "fr": "Tester la connexion" },
+      "timeout_seconds": 90
     },
     {
-      "key": "identify",
-      "label": { "en": "Identify a device", "fr": "Identifier un appareil" },
+      "key": "two_factor_code",
+      "label": {
+        "en": "Send a two-factor code (Panasonic ID)",
+        "fr": "Envoyer un code de double authentification (Panasonic ID)"
+      },
+      "timeout_seconds": 90,
       "fields": [
         {
-          "key": "device",
-          "type": "select",
-          "source": "devices",
-          "label": { "en": "Device", "fr": "Appareil" },
-          "required": true
+          "key": "code",
+          "type": "string",
+          "required": true,
+          "label": {
+            "en": "Current code of your authenticator app",
+            "fr": "Code actuel de votre application d'authentification"
+          },
+          "placeholder": { "en": "e.g. 123456", "fr": "ex. 123456" }
         }
       ]
     }
   ],
   "scene_triggers": [
     {
-      "key": "motion_detected",
-      "label": { "en": "Motion detected", "fr": "Mouvement détecté" },
+      "key": "heat_pump_error",
+      "label": { "en": "Heat pump error", "fr": "Erreur de la pompe à chaleur" },
       "description": {
-        "en": "A demo motion sensor saw a person or an animal move.",
-        "fr": "Un détecteur de démonstration a vu bouger une personne ou un animal."
+        "en": "The heat pump reports a new error code (H62, F12…), through Aquarea Smart Cloud or HeishaMon.",
+        "fr": "La pompe à chaleur signale un nouveau code erreur (H62, F12…), par Aquarea Smart Cloud ou HeishaMon."
       },
       "fields": [
         {
           "key": "device",
           "type": "select",
           "source": "devices",
-          "label": { "en": "Sensor", "fr": "Détecteur" }
+          "label": { "en": "Heat pump", "fr": "Pompe à chaleur" }
         },
         {
-          "key": "target",
-          "type": "multi_select",
-          "label": { "en": "What moved", "fr": "Ce qui a bougé" },
-          "options": [
-            { "value": "person", "label": { "en": "Person", "fr": "Personne" } },
-            { "value": "animal", "label": { "en": "Animal", "fr": "Animal" } }
-          ]
+          "key": "code",
+          "type": "string",
+          "label": { "en": "Error code (e.g. H62)", "fr": "Code erreur (ex. H62)" }
         }
       ],
       "variables": [
+        { "key": "code", "type": "string", "label": { "en": "Error code", "fr": "Code erreur" } },
         {
-          "key": "target",
+          "key": "message",
           "type": "string",
-          "label": { "en": "What moved", "fr": "Ce qui a bougé" }
+          "label": { "en": "Error message", "fr": "Message d'erreur" }
+        },
+        {
+          "key": "heat_pump",
+          "type": "string",
+          "label": { "en": "Heat pump name", "fr": "Nom de la pompe à chaleur" }
         }
       ]
-    }
-  ],
-  "scene_actions": [
-    {
-      "key": "identify_device",
-      "label": { "en": "Identify a device", "fr": "Identifier un appareil" },
-      "description": {
-        "en": "Make a device signal itself (the demo light blinks).",
-        "fr": "Fait se signaler un appareil (la lampe de démonstration clignote)."
-      },
-      "timeout_seconds": 15,
-      "fields": [
-        {
-          "key": "device",
-          "type": "select",
-          "source": "devices",
-          "label": { "en": "Device", "fr": "Appareil" },
-          "required": true
-        }
-      ],
-      "outputs": [
-        {
-          "key": "signalled",
-          "type": "boolean",
-          "label": { "en": "Device signalled", "fr": "Appareil signalé" }
-        }
-      ]
-    }
-  ],
-  "widgets": [
-    {
-      "key": "demo_status",
-      "label": { "en": "Demo status", "fr": "État de la démo" },
-      "description": {
-        "en": "Live temperature and plug power, plug connection and observed location.",
-        "fr": "Température et puissance en direct, connexion de la prise, position observée."
-      },
-      "icon": "activity",
-      "action_timeout_seconds": 15
     }
   ]
 }
