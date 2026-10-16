@@ -11,10 +11,13 @@ energy dashboards. Unofficial, not affiliated with Panasonic.
 
 User documentation: [docs/en.md](docs/en.md) · [docs/fr.md](docs/fr.md).
 
-> Work in progress (0.1, not published to the store yet): announced on the
-> [Gladys forum](https://community.gladysassistant.com/t/integrations-home-assistant-les-plus-populaires-candidates-pour-des-integrations-externes-gladys/10385/178).
-> Developed without a heat pump: see [TODO.md](TODO.md) for what still needs a
-> real installation.
+> **In the Gladys store.** Install it from **Integrations**, or with **Install
+> from GitHub** and `https://github.com/LM1LC3N7/gladys-aquarea`. First version,
+> developed and tested without a heat pump: the Panasonic cloud and HeishaMon
+> were simulated from the documentation of the projects that use them (see
+> [TODO.md](TODO.md) for what still needs a real installation). Feedback and bug
+> reports are welcome in the
+> [GitHub issues](https://github.com/LM1LC3N7/gladys-aquarea/issues).
 
 ## How it works
 
@@ -113,7 +116,7 @@ echoes): `~/gladys-integrations/e2e/heishamon-e2e.sh` (outside the repository).
 **Actions → Release → Run workflow** (patch / minor / major): bumps the
 version in `package.json` and the manifest, rolls `CHANGELOG.md`, tags, builds
 the multi-arch image to GHCR and publishes the GitHub Release. The
-`gladys-assistant-integration` topic is added at the first real release only.
+`gladys-assistant-integration` topic lists the repository in the Gladys store.
 
 ## License
 
