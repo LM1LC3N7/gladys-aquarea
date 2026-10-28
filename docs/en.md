@@ -101,6 +101,9 @@ configuration and sums up what it found.
   default. Temperatures and powers change every few seconds on a running heat
   pump: Gladys keeps the last one at this pace. Modes, setpoints and on/off are
   never delayed.
+- **Hot water ceiling (°C)**: scalding risk. Gladys never sets the hot water
+  above this temperature: 65 °C by default, from 40 to 65 °C, never more than
+  65 °C whatever is typed. A lower limit of the heat pump still applies.
 - **Language of the feature names**: French or English.
 - **Prefer the local connection** (switch of Gladys): when both the cloud and
   HeishaMon are filled in, on = HeishaMon, off = the cloud. A heat pump read
@@ -114,6 +117,12 @@ configuration and sums up what it found.
   cloud: zones off, tank kept). To stop everything, use **Heat pump on/off**.
   Choosing heating, cooling or auto keeps the hot water as it was and switches
   the heat pump on if needed.
+- **Hot water setpoint**: whole degrees, from the floor of the heat pump (40 °C
+  on HeishaMon) to the ceiling of the options (65 °C by default, **never above
+  65 °C**), even though HeishaMon accepts up to 75 °C. A higher value is
+  brought back to the ceiling; a lower limit of the heat pump (the cloud
+  reports one) wins. A setpoint already set higher on the unit is shown as it
+  is, but Gladys never writes it back above the ceiling.
 - **Setpoints on a heating curve**: when a zone follows a compensation curve,
   its setpoint is a **shift** of the curve, from −5 to +5 °C (named "shift
   (curve)"); in direct mode it is the water temperature. On HeishaMon, a zone

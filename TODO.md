@@ -78,6 +78,14 @@ up to date at the end of every milestone.
 
 ## Decisions
 
+- **Hot water ceiling at 65 °C** (Louis's rule, 2026-10-28): option
+  `dhw_max_temperature`, 65 °C by default, from 40 to 65 °C, as in the other
+  heating modules. Applied to both write paths (HeishaMon was writing up to
+  75 °C, the cloud only followed `heatMax`) and to the published `max`. A
+  higher value is brought back to the ceiling (this module already clamped
+  every setpoint); a lower limit of the heat pump wins. A setpoint already
+  above 65 °C on the unit is shown as is, never written back higher.
+
 - **Not a duplicate of the core** (checked 2026-10-15): no Aquarea, Panasonic
   or HeishaMon code in GladysAssistant/Gladys master (5.2.1, `server/services`)
   nor in 217 release notes; HeishaMon publishes no Home Assistant discovery (no

@@ -10,6 +10,7 @@ import { DEFAULTS, LANGUAGES } from '../src/config.js';
 import {
   ACTIONS,
   CLOUD_INTERVAL,
+  DHW_CAP,
   HTTP_INTERVAL,
   SCENE_TRIGGERS,
   SENSOR_INTERVAL,
@@ -89,8 +90,15 @@ test('the configuration matches the code', () => {
     ['cloud_interval', CLOUD_INTERVAL],
     ['http_interval', HTTP_INTERVAL],
     ['sensor_interval', SENSOR_INTERVAL],
+    ['dhw_max_temperature', DHW_CAP],
   ]) {
     assert.deepEqual([fields[key].min, fields[key].max], [bounds.min, bounds.max], key);
+  }
+  // Hot water: 65 °C by default and at most (Louis's rule), a lower ceiling allowed.
+  assert.deepEqual([fields.dhw_max_temperature.default, fields.dhw_max_temperature.max], [65, 65]);
+  assert.ok(DHW_CAP.max <= 65 && DHW_CAP.default <= DHW_CAP.max);
+  for (const lang of ['en', 'fr']) {
+    assert.match(fields.dhw_max_temperature.description[lang], /65 °C/);
   }
   assert.deepEqual(fields.language.options.map((o) => o.value).sort(), [...LANGUAGES].sort());
   for (const section of manifest.config_schema.filter((f) => f.type === 'section')) {

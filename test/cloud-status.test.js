@@ -181,3 +181,35 @@ test('the consumption: finished days only, the three uses added, gaps skipped', 
   ]);
   assert.deepEqual(parseConsumption({}, '2026-10-15'), []);
 });
+
+test('the hot water setpoint: never above 65 °C nor the ceiling; a lower heat pump limit wins', () => {
+  const raw = fx.statusTwoZones().status; // heatMin 40, heatMax 65
+  const heatSet = (value, r = raw, options) =>
+    commandBody('tank-setpoint', value, r, options).tankStatus.heatSet;
+  assert.equal(heatSet(65), 65);
+  assert.equal(heatSet(66), 65);
+  // A heat pump that reports 75 °C as its limit (read back): still 65.
+  const hot = fx.statusHeatOnlyError().status; // heatMax 75
+  assert.equal(heatSet(65, hot), 65);
+  assert.equal(heatSet(75, hot), 65);
+  assert.equal(heatSet(Number(hot.tankStatus.heatMax), hot), 65);
+  assert.equal(heatSet(70, hot, { tankCap: 99 }), 65);
+  // The configured ceiling, lower.
+  assert.equal(heatSet(65, hot, { tankCap: 55 }), 55);
+  assert.equal(heatSet(52, hot, { tankCap: 55 }), 52);
+  // The heat pump's own limit, lower than the ceiling, wins.
+  const low = fx.statusTwoZones().status;
+  low.tankStatus.heatMax = 60;
+  assert.equal(heatSet(65, low), 60);
+  // No limit reported: the ceiling still holds.
+  const unknown = fx.statusTwoZones().status;
+  delete unknown.tankStatus.heatMax;
+  assert.equal(heatSet(80, unknown), 65);
+  // A heat pump whose floor is above the ceiling: nothing is sent.
+  const floor = fx.statusTwoZones().status;
+  floor.tankStatus.heatMin = 50;
+  assert.throws(
+    () => commandBody('tank-setpoint', 45, floor, { tankCap: 45 }),
+    /no hot water setpoint/,
+  );
+});

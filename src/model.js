@@ -33,6 +33,7 @@ import {
   THERMOSTAT_MODE,
   THERMOSTAT_OPERATING_STATE,
 } from './constants.js';
+import { tankTop } from './config.js';
 import { names } from './i18n.js';
 
 /** The keys whose commands the sources implement. */
@@ -71,7 +72,7 @@ export function supportedModes(snapshot) {
  * @param {object} snapshot
  * @param {'en'|'fr'} language
  */
-export function featureSpecs(snapshot, language = 'en') {
+export function featureSpecs(snapshot, language = 'en', { tankCap } = {}) {
   const n = names(language);
   const specs = [];
   const add = (key, feature, read, { throttle = false } = {}) => {
@@ -182,7 +183,8 @@ export function featureSpecs(snapshot, language = 'en') {
           type: TYPES.WATER_HEATER.TARGET_TEMPERATURE,
           unit: UNITS.CELSIUS,
           min: tank.min,
-          max: tank.max,
+          // Never above the ceiling (65 °C at most), nor the heat pump's limit.
+          max: tankTop(tank.max, tankCap),
           step: 1,
         },
         (s) => num(s.tank?.target),
@@ -329,8 +331,8 @@ const paramsOf = (snapshot, source) =>
  * @param {object} snapshot
  * @param {{ language: 'en'|'fr', source: 'cloud'|'heishamon' }} ctx
  */
-export function buildDevice(ids, snapshot, { language, source }) {
-  const specs = featureSpecs(snapshot, language);
+export function buildDevice(ids, snapshot, { language, source, tankCap }) {
+  const specs = featureSpecs(snapshot, language, { tankCap });
   return {
     device: {
       name: String(snapshot.name || names(language).device).slice(0, 100),

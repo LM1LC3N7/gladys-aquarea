@@ -108,6 +108,10 @@ enregistrée et résume ce qu'il a trouvé.
   défaut. Températures et puissances changent toutes les quelques secondes sur
   une pompe à chaleur en marche : Gladys garde la dernière à ce rythme. Modes,
   consignes et marche/arrêt ne sont jamais retardés.
+- **Plafond de l'eau chaude (°C)** : risque de brûlure. Gladys ne règle jamais
+  l'eau chaude au-dessus de cette température : 65 °C par défaut, de 40 à
+  65 °C, jamais plus de 65 °C quoi qu'on saisisse. Une limite plus basse de la
+  pompe à chaleur s'applique toujours.
 - **Langue des noms des fonctionnalités** : français ou anglais.
 - **Préférer la connexion locale** (interrupteur de Gladys) : quand le cloud et
   HeishaMon sont tous deux renseignés, activé = HeishaMon, désactivé = le
@@ -122,6 +126,13 @@ enregistrée et résume ce qu'il a trouvé.
   utilisez **Marche/arrêt de la pompe à chaleur**. Choisir chauffage, froid ou
   auto garde l'eau chaude comme elle était et met la pompe à chaleur en marche
   si besoin.
+- **Consigne d'eau chaude** : en degrés entiers, du plancher de la pompe à
+  chaleur (40 °C avec HeishaMon) au plafond des options (65 °C par défaut,
+  **jamais au-dessus de 65 °C**), même si HeishaMon accepte jusqu'à 75 °C. Une
+  valeur plus haute est ramenée au plafond ; une limite plus basse de la pompe
+  à chaleur (le cloud en donne une) l'emporte. Une consigne déjà réglée plus
+  haut sur l'appareil est affichée telle quelle, mais Gladys ne la réécrit
+  jamais au-dessus du plafond.
 - **Consignes sur une loi d'eau** : quand une zone suit une courbe de chauffe,
   sa consigne est un **décalage** de la courbe, de −5 à +5 °C (nommée
   « Décalage (courbe) ») ; en mode direct c'est la température de l'eau. Sur

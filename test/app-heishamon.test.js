@@ -145,6 +145,26 @@ test('commands are published on the command topics of HeishaMon', async (t) => {
   assert.equal(refused.success, false);
 });
 
+test('the hot water ceiling of the configuration: the slider and the command', async (t) => {
+  const { gladys, app, broker } = await start({
+    broker: brokerWithDump(),
+    config: { dhw_max_temperature: 55 },
+  });
+  t.after(() => app.stop());
+  await waitFor(() => gladys.fake.discoveredDevices.length === 1);
+  const device = gladys.fake.discoveredDevices[0];
+  await gladys.fake.deviceCreated(device);
+  const tank = device.features.find((f) => f.external_id === `${ID}:tank-setpoint`);
+  assert.deepEqual([tank.min, tank.max], [40, 55]);
+  const from = broker.published.length;
+  await gladys.fake.setValue(device, tank, 70);
+  await gladys.fake.setValue(device, tank, 50);
+  assert.deepEqual(
+    broker.published.slice(from).map((p) => `${p.topic}=${p.payload}`),
+    [`${BASE}/commands/SetDHWTemp=55`, `${BASE}/commands/SetDHWTemp=50`],
+  );
+});
+
 test('a new error code fires the scene trigger once; the code at connection does not', async (t) => {
   const { gladys, app, broker } = await start({
     broker: brokerWithDump({ ...dump(), 'main/Error': 'F12' }),

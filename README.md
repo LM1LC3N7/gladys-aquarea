@@ -9,6 +9,9 @@ temperatures, modes, quiet and powerful modes, defrost, error codes as a scene
 trigger, compressor frequency, heat produced, power and energy for the Gladys
 energy dashboards. Unofficial, not affiliated with Panasonic.
 
+The hot water setpoint is never written above 65 °C (ceiling in the options,
+65 °C by default, lower allowed), whatever HeishaMon or the cloud would accept.
+
 User documentation: [docs/en.md](docs/en.md) · [docs/fr.md](docs/fr.md).
 
 > **In the Gladys store.** Install it from **Integrations**, or with **Install

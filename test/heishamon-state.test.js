@@ -176,3 +176,24 @@ test('mode commands keep the hot water as it was', () => {
   ]);
   assert.throws(() => state.commands('mode', 7), /unknown mode/);
 });
+
+test('the hot water setpoint: 65 °C passes, above is brought back, never written higher', () => {
+  const state = stateOf();
+  const dhw = (value, options) => state.commands('tank-setpoint', value, options)[0].value;
+  assert.equal(dhw(65), 65);
+  assert.equal(dhw(64.6), 65);
+  assert.equal(dhw(65.4), 65);
+  assert.equal(dhw(66), 65, 'HeishaMon would take 75: brought back to 65');
+  assert.equal(dhw(75), 65);
+  assert.equal(dhw(1e9), 65);
+  assert.equal(dhw(30), 40, "HeishaMon's floor");
+  // The configured ceiling, lower; a raw one above 65 still stops at 65.
+  assert.equal(dhw(65, { tankCap: 50 }), 50);
+  assert.equal(dhw(48, { tankCap: 50 }), 48);
+  assert.equal(dhw(70, { tankCap: 99 }), 65);
+  assert.equal(dhw(70, { tankCap: 'x' }), 65);
+  // A setpoint read back above 65 (set on the unit) is published, never resent higher.
+  const high = stateOf(dump(), { 'main/DHW_Target_Temp': '70' });
+  assert.equal(high.snapshot().tank.target, 70);
+  assert.equal(high.commands('tank-setpoint', high.snapshot().tank.target)[0].value, 65);
+});

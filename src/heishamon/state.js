@@ -11,7 +11,8 @@
 // documentation only: the repository carries no licence).
 // -----------------------------------------------------------------------------
 
-import { THERMOSTAT_MODE, THERMOSTAT_OPERATING_STATE } from '../constants.js';
+import { tankTop } from '../config.js';
+import { DHW_CAP, THERMOSTAT_MODE, THERMOSTAT_OPERATING_STATE } from '../constants.js';
 
 /** Topics carried as text, not numbers. */
 const TEXT_TOPICS = new Set(['Error', 'Heat_Pump_Model']);
@@ -76,6 +77,26 @@ export function parseValue(name, payload) {
     return null;
   }
   return value;
+}
+
+/** HeishaMon's own range of the hot water setpoint (°C). */
+const TANK_RANGE = { min: 40, max: 75 };
+
+/**
+ * The hot water setpoint written: within HeishaMon's range, never above the
+ * ceiling (configured, 65 °C at most). A last check stands before the value
+ * leaves, whatever computed it.
+ */
+function tankValue(int, tankCap) {
+  const top = tankTop(TANK_RANGE.max, tankCap);
+  if (top < TANK_RANGE.min) {
+    throw new Error(`no hot water setpoint fits under ${top} °C`);
+  }
+  const written = Math.max(TANK_RANGE.min, Math.min(top, int));
+  if (!(written <= top && written <= DHW_CAP.max)) {
+    throw new Error(`hot water setpoint ${written} °C above the ceiling`);
+  }
+  return written;
 }
 
 export class HeishamonState {
@@ -207,8 +228,8 @@ export class HeishamonState {
       ? {
           temperature: field('DHW_Temp'),
           target: field('DHW_Target_Temp'),
-          min: 40,
-          max: 75,
+          min: TANK_RANGE.min,
+          max: TANK_RANGE.max,
           heating: known('Compressor_Freq') ? (running && valveDhw ? 1 : 0) : undefined,
         }
       : null;
@@ -248,8 +269,10 @@ export class HeishamonState {
   /**
    * The HeishaMon commands of a Gladys value: `[{ name, value }]`, sent as
    * `<base>/commands/<name>` (MQTT) or `/command?<name>=<value>` (HTTP).
+   * The hot water setpoint is brought back under the ceiling (`tankCap`,
+   * never above 65 °C, see tankTop).
    */
-  commands(key, value) {
+  commands(key, value, { tankCap } = {}) {
     const n = Number(value);
     if (!Number.isFinite(n)) {
       throw new Error(`not a number: ${value}`);
@@ -273,7 +296,7 @@ export class HeishamonState {
       case 'mode':
         return this.modeCommands(int);
       case 'tank-setpoint':
-        return [{ name: 'SetDHWTemp', value: Math.max(40, Math.min(75, int)) }];
+        return [{ name: 'SetDHWTemp', value: tankValue(int, tankCap) }];
       case 'quiet-mode':
         return [{ name: 'SetQuietMode', value: Math.max(0, Math.min(3, int)) }];
       default:

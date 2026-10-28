@@ -118,6 +118,8 @@ test('once created: the states, the finished days of consumption, the commands',
     change: { tankStatus: { heatSet: 55 } },
   });
   await waitFor(() => state('tank-setpoint') === 55, 3000, 'echo of the tank setpoint');
+  await gladys.fake.setValue(device, feature('tank-setpoint'), 70);
+  assert.deepEqual(fake.state.commands.at(-1).change, { tankStatus: { heatSet: 65 } });
   await gladys.fake.setValue(device, feature('mode'), 2);
   assert.equal(fake.state.commands.at(-1).change.operationMode, 3);
   await waitFor(() => state('mode') === 2, 3000, 'echo of the mode');

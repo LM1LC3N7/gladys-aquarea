@@ -1,6 +1,13 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { DEFAULTS, normalizeConfig, parseHeishamonUrl, parseTopics } from '../src/config.js';
+import {
+  DEFAULTS,
+  dhwCapOf,
+  normalizeConfig,
+  parseHeishamonUrl,
+  parseTopics,
+  tankTop,
+} from '../src/config.js';
 
 test('the HeishaMon address: a broker or the board', () => {
   assert.deepEqual(parseHeishamonUrl('192.168.1.10'), {
@@ -68,4 +75,25 @@ test('numbers are bounded, unknown values fall back', () => {
   assert.equal(c.language, 'fr');
   assert.equal(c.heishamon.verifyCertificate, false);
   assert.equal(c.cloud.appVersion, '4.3.0');
+});
+
+test('the hot water ceiling: 65 °C by default, never above 65 °C, rounded down', () => {
+  assert.equal(DEFAULTS.dhw_max_temperature, 65);
+  assert.equal(normalizeConfig({}).tankCap, 65);
+  assert.equal(normalizeConfig({ dhw_max_temperature: 50 }).tankCap, 50);
+  assert.equal(dhwCapOf(65), 65);
+  assert.equal(dhwCapOf(66), 65);
+  assert.equal(dhwCapOf(1e9), 65);
+  assert.equal(dhwCapOf(64.9), 64, 'rounded down');
+  assert.equal(dhwCapOf(10), 40);
+  assert.equal(dhwCapOf(''), 65);
+  assert.equal(dhwCapOf('abc'), 65);
+  // The lowest of 65 °C, the ceiling and the heat pump's limit.
+  assert.equal(tankTop(75, 65), 65);
+  assert.equal(tankTop(75, 99), 65);
+  assert.equal(tankTop(75, undefined), 65);
+  assert.equal(tankTop(undefined, 55), 55);
+  assert.equal(tankTop(null, undefined), 65);
+  assert.equal(tankTop(60, 65), 60, 'a lower limit of the heat pump wins');
+  assert.equal(tankTop(62.7, 65), 62, 'rounded down');
 });

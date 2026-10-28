@@ -121,3 +121,18 @@ test('a value not known now is not sent; the error text', () => {
   assert.deepEqual(states['powerful-mode'], { text: '1' });
   assert.deepEqual(states['tank-heating'], { state: 1 });
 });
+
+test('the hot water slider never goes above 65 °C, the ceiling, nor the heat pump', () => {
+  const tankMax = (snapshot, options) =>
+    featureSpecs(snapshot, 'en', options).find((spec) => spec.key === 'tank-setpoint').feature.max;
+  const heishamon = heishamonSnapshot();
+  assert.equal(heishamon.tank.max, 75, 'HeishaMon accepts 75');
+  assert.equal(tankMax(heishamon), 65);
+  assert.equal(tankMax(heishamon, { tankCap: 55 }), 55);
+  assert.equal(tankMax(heishamon, { tankCap: 90 }), 65);
+  const hot = parseStatus(cloud.statusHeatOnlyError(), { guid: cloud.GUID_2 });
+  assert.equal(tankMax(hot), 65, 'a cloud limit of 75 is not published');
+  const low = cloud.statusTwoZones();
+  low.status.tankStatus.heatMax = 60;
+  assert.equal(tankMax(parseStatus(low, { guid: cloud.GUID })), 60);
+});

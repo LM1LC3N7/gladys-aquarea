@@ -10,10 +10,23 @@ the notes of the version's GitHub Release.
 
 ## [Unreleased]
 
+### Added
+
+- Hot water ceiling option (°C): 65 °C by default, from 40 to 65 °C.
+
 ### Changed
 
 - README: the store install note replaces the work-in-progress notice, and the
   Releasing section no longer says the store topic is still to be added.
+- The hot water setpoint slider goes up to the ceiling (65 °C at most), or to
+  the limit of the heat pump when it is lower.
+
+### Fixed
+
+- The hot water setpoint is never written above 65 °C: HeishaMon accepted up
+  to 75 °C and the cloud followed the limit the heat pump reports, with no
+  ceiling of the integration. Both paths now keep the value under the ceiling,
+  a value above it is brought back, and a lower limit of the heat pump wins.
 
 ## [0.1.1] - 2026-10-16
 

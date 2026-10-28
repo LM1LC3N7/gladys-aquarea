@@ -197,6 +197,7 @@ export class AquareaApp {
     const { device, readers } = buildDevice(ids, snapshot, {
       language: this.config.language,
       source: this.config.source,
+      tankCap: this.config.tankCap,
     });
     if (!device.name || device.name === T.names(this.config.language).device) {
       device.name = this.defaultName(snapshot);

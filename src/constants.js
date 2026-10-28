@@ -24,6 +24,15 @@ export const HTTP_INTERVAL = { min: 5, max: 600, default: 30 };
 /** Minimum interval between two readings of a measurement (seconds), mirrored by the manifest. */
 export const SENSOR_INTERVAL = { min: 0, max: 600, default: 30 };
 
+/**
+ * The hot water setpoint the commands may set, in °C (scalding risk). The
+ * configuration chooses the ceiling between `min` and `max`, 65 °C by
+ * default; nothing above 65 °C is ever written, whatever the configuration
+ * says or the heat pump would accept (HeishaMon goes up to 75 °C). A lower
+ * limit of the heat pump itself always wins.
+ */
+export const DHW_CAP = { min: 40, max: 65, default: 65 };
+
 /** HeishaMon's default MQTT base topic. */
 export const DEFAULT_TOPIC = 'panasonic_heat_pump';
 

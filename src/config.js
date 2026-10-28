@@ -10,7 +10,13 @@
 // (GLADYS_PREFER_LOCAL, on by default) picks HeishaMon; off, the cloud.
 // -----------------------------------------------------------------------------
 
-import { CLOUD_INTERVAL, DEFAULT_TOPIC, HTTP_INTERVAL, SENSOR_INTERVAL } from './constants.js';
+import {
+  CLOUD_INTERVAL,
+  DEFAULT_TOPIC,
+  DHW_CAP,
+  HTTP_INTERVAL,
+  SENSOR_INTERVAL,
+} from './constants.js';
 
 /** Defaults, mirrored by the manifest (checked by test/manifest.test.js). */
 export const DEFAULTS = {
@@ -25,6 +31,7 @@ export const DEFAULTS = {
   verify_certificate: true,
   http_interval: HTTP_INTERVAL.default,
   sensor_interval: SENSOR_INTERVAL.default,
+  dhw_max_temperature: DHW_CAP.default,
   language: 'fr',
 };
 
@@ -83,6 +90,36 @@ export function parseTopics(raw) {
   return topics.length > 0 ? [...new Set(topics)] : [DEFAULT_TOPIC];
 }
 
+/**
+ * The hot water ceiling of the configuration: whole degrees within DHW_CAP,
+ * rounded down, else the default (65 °C). Never above DHW_CAP.max, whatever
+ * was typed.
+ */
+export function dhwCapOf(value) {
+  const number = value === '' || value === null ? NaN : Number(value);
+  if (!Number.isFinite(number)) {
+    return DHW_CAP.default;
+  }
+  return Math.min(DHW_CAP.max, Math.max(DHW_CAP.min, Math.floor(number)));
+}
+
+/**
+ * The highest hot water setpoint that may be written: the lowest of the hard
+ * ceiling (65 °C), the configured ceiling and the limit of the heat pump
+ * (when known), whole degrees rounded down. Both write paths (HeishaMon and
+ * the cloud) and the published slider go through it.
+ * @param {number|null|undefined} deviceMax the limit the heat pump reports
+ * @param {number|undefined} cap the configured ceiling (normalized or raw)
+ */
+export function tankTop(deviceMax, cap) {
+  let top = Math.min(DHW_CAP.max, dhwCapOf(cap));
+  const limit = Number(deviceMax);
+  if (deviceMax !== null && deviceMax !== undefined && Number.isFinite(limit)) {
+    top = Math.min(top, Math.floor(limit));
+  }
+  return top;
+}
+
 const clamp = (raw, { min, max, default: fallback }) => {
   const value = Number(raw);
   return Number.isFinite(value) ? Math.max(min, Math.min(max, Math.round(value))) : fallback;
@@ -133,6 +170,7 @@ export function normalizeConfig(raw = {}) {
     cloud,
     heishamon,
     sensorInterval: clamp(c.sensor_interval, SENSOR_INTERVAL),
+    tankCap: dhwCapOf(c.dhw_max_temperature),
     language: LANGUAGES.includes(c.language) ? c.language : DEFAULTS.language,
   };
 }

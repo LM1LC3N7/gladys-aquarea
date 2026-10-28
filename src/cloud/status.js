@@ -16,7 +16,8 @@
 // switching itself back on, zones that never turn off).
 // -----------------------------------------------------------------------------
 
-import { THERMOSTAT_MODE, THERMOSTAT_OPERATING_STATE } from '../constants.js';
+import { tankTop } from '../config.js';
+import { DHW_CAP, THERMOSTAT_MODE, THERMOSTAT_OPERATING_STATE } from '../constants.js';
 import {
   DIRECTION,
   INVALID_TEMPERATURE,
@@ -207,8 +208,10 @@ const UPDATE_OF = {
  * @param {string} key the feature key (src/model.js)
  * @param {number|string} value the Gladys value
  * @param {object} raw the last status object of the heat pump (statusOf)
+ * @param {{ tankCap?: number }} [options] the hot water ceiling of the
+ *   configuration (65 °C by default, never above 65 °C, see tankTop)
  */
-export function commandBody(key, value, raw) {
+export function commandBody(key, value, raw, { tankCap } = {}) {
   const zones = zonesOf(raw ?? {});
   const tankRaw = raw?.tankStatus && Object.keys(raw.tankStatus).length > 0 ? raw.tankStatus : null;
   const tankStatus = number(tankRaw?.operationStatus) === OPERATION_STATUS.ON ? 1 : 0;
@@ -262,15 +265,25 @@ export function commandBody(key, value, raw) {
         tankStatus: { operationStatus: tankStatus },
       };
     }
-    case 'tank-setpoint':
-      return {
-        tankStatus: {
-          heatSet: round(value, {
-            min: number(tankRaw?.heatMin) ?? undefined,
-            max: number(tankRaw?.heatMax) ?? undefined,
-          }),
-        },
-      };
+    case 'tank-setpoint': {
+      // The heat pump's own range, under the ceiling (65 °C at most): a lower
+      // limit of the heat pump wins, an unknown one leaves the ceiling.
+      const min = number(tankRaw?.heatMin) ?? undefined;
+      const top = tankTop(number(tankRaw?.heatMax), tankCap);
+      if (min !== undefined && min > top) {
+        throw new PanasonicError(`no hot water setpoint fits under ${top} °C`, {
+          kind: 'protocol',
+        });
+      }
+      const heatSet = round(value, { min, max: top });
+      // Last check before the value leaves, whatever computed it.
+      if (!(heatSet <= top && heatSet <= DHW_CAP.max)) {
+        throw new PanasonicError(`hot water setpoint ${heatSet} °C above the ceiling`, {
+          kind: 'protocol',
+        });
+      }
+      return { tankStatus: { heatSet } };
+    }
     case 'quiet-mode':
       return { quietMode: round(value, { min: 0, max: 3 }) };
     default:

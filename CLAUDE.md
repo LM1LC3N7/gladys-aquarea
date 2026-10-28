@@ -81,6 +81,12 @@ test/helpers/            fake Panasonic cloud (fetch), MQTT broker, fast timers
   Refused credentials and two-factor prompts are never retried on their own
   (an account lock-out risk). Commands that change on/off or the mode resend
   the status of every zone and of the tank (omitted ones reset).
+- **Hot water**: never written above 65 °C (`DHW_CAP.max`, Louis's rule of
+  2026-10-28), nor above the configured ceiling (`dhw_max_temperature`, 65 °C
+  by default) nor the heat pump's own limit when lower. `tankTop()` in
+  `src/config.js` is the one bound of both write paths (HeishaMon
+  `commands`, cloud `commandBody`) and of the published slider; each path
+  checks the value once more before it leaves.
 - Never log or put in a status message a token, a password, a two-factor code
   or a whole Panasonic answer: errors keep the code and a short message only.
 - Container limits: 256 MB RAM, 0.5 CPU, read-only rootfs, only `/data`

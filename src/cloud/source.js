@@ -343,7 +343,7 @@ export class CloudSource {
     if (!raw) {
       throw new Error('This heat pump has not been read yet');
     }
-    const body = commandBody(key, value, raw);
+    const body = commandBody(key, value, raw, { tankCap: this.config.tankCap });
     await this.api.control(guid, body);
     this.logger.debug(`Aquarea command for ${key}: ${Object.keys(body).join(', ')}`);
     this.echo(guid);

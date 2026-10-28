@@ -416,7 +416,7 @@ export class HeishamonSource {
     if (!state?.ready) {
       throw new Error('This heat pump has not been read yet');
     }
-    const commands = state.commands(key, value);
+    const commands = state.commands(key, value, { tankCap: this.config.tankCap });
     if (commands.length === 0) {
       return;
     }
