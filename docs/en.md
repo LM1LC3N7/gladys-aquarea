@@ -122,7 +122,11 @@ configuration and sums up what it found.
   65 °C**), even though HeishaMon accepts up to 75 °C. A higher value is
   brought back to the ceiling; a lower limit of the heat pump (the cloud
   reports one) wins. A setpoint already set higher on the unit is shown as it
-  is, but Gladys never writes it back above the ceiling.
+  is, but Gladys never writes it back above the ceiling. If the heat pump
+  cannot go down to the ceiling (its own minimum is higher), Gladys no longer
+  writes the hot water setpoint. A new ceiling applies to the commands as
+  soon as the configuration is saved; the slider of a device already created
+  only changes after **Update** in the **Discovery** tab.
 - **Setpoints on a heating curve**: when a zone follows a compensation curve,
   its setpoint is a **shift** of the curve, from −5 to +5 °C (named "shift
   (curve)"); in direct mode it is the water temperature. On HeishaMon, a zone

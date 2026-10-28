@@ -132,7 +132,11 @@ enregistrée et résume ce qu'il a trouvé.
   valeur plus haute est ramenée au plafond ; une limite plus basse de la pompe
   à chaleur (le cloud en donne une) l'emporte. Une consigne déjà réglée plus
   haut sur l'appareil est affichée telle quelle, mais Gladys ne la réécrit
-  jamais au-dessus du plafond.
+  jamais au-dessus du plafond. Si la pompe à chaleur ne descend pas jusqu'au
+  plafond (son propre minimum est plus haut), Gladys n'écrit plus la consigne
+  d'eau chaude. Un nouveau plafond s'applique aux commandes dès que la
+  configuration est enregistrée ; le curseur d'un appareil déjà créé ne
+  change qu'après **Mettre à jour** dans l'onglet **Découverte**.
 - **Consignes sur une loi d'eau** : quand une zone suit une courbe de chauffe,
   sa consigne est un **décalage** de la courbe, de −5 à +5 °C (nommée
   « Décalage (courbe) ») ; en mode direct c'est la température de l'eau. Sur

@@ -129,6 +129,23 @@ test('once created: the states, the finished days of consumption, the commands',
   assert.deepEqual(fake.state.commands.at(-1).change, { quietMode: 0 });
 });
 
+test('the hot water ceiling of the configuration on the cloud: the slider and the command', async (t) => {
+  const { gladys, app, fake } = await start({ config: { dhw_max_temperature: 55 } });
+  t.after(() => app.stop());
+  await waitFor(() => gladys.fake.discoveredDevices.length === 1, 3000, 'discovery');
+  const [device] = gladys.fake.discoveredDevices;
+  await gladys.fake.deviceCreated(device);
+  const tank = device.features.find((f) => f.external_id === `${ID}:tank-setpoint`);
+  assert.deepEqual([tank.min, tank.max], [40, 55], 'the heat pump accepts 65, the ceiling is 55');
+  assert.deepEqual(await gladys.fake.setValue(device, tank, 70), { success: true });
+  assert.deepEqual(fake.state.commands.at(-1), {
+    gwid: GUID,
+    change: { tankStatus: { heatSet: 55 } },
+  });
+  await gladys.fake.setValue(device, tank, 52);
+  assert.deepEqual(fake.state.commands.at(-1).change, { tankStatus: { heatSet: 52 } });
+});
+
 test('an adapter that does not answer live: the cloud copy, and a degraded badge', async (t) => {
   const { gladys, app, fake } = await start();
   t.after(() => app.stop());
