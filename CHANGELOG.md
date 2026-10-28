@@ -10,6 +10,8 @@ the notes of the version's GitHub Release.
 
 ## [Unreleased]
 
+## [0.1.2] - 2026-10-28
+
 ### Added
 
 - Hot water ceiling option (°C): 65 °C by default, from 40 to 65 °C.
@@ -53,5 +55,6 @@ the notes of the version's GitHub Release.
   live, when HeishaMon is offline or silent for 15 minutes.
 - "Test the connection" button, feature names in French or English.
 
-[Unreleased]: https://github.com/LM1LC3N7/gladys-aquarea/compare/v0.1.1...HEAD
+[Unreleased]: https://github.com/LM1LC3N7/gladys-aquarea/compare/v0.1.2...HEAD
+[0.1.2]: https://github.com/LM1LC3N7/gladys-aquarea/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/LM1LC3N7/gladys-aquarea/releases/tag/v0.1.1
