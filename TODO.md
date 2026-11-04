@@ -76,6 +76,11 @@ up to date at the end of every milestone.
 - **Energy**: the integrated index against the heat pump's own counter or a
   meter over a few days.
 
+## Next patch
+
+- `test/app-cloud.test.js` (refused password): export the `fastTimers` factor from
+  `test/helpers/harness.js` instead of repeating 20 in the wait (review vague7-xhigh-r2).
+
 ## Decisions
 
 - **Hot water ceiling at 65 °C** (Louis's rule, 2026-10-28): option
