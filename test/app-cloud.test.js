@@ -11,6 +11,7 @@ import { AquareaApp } from '../src/app.js';
 import { createHttp } from '../src/cloud/http.js';
 import { registerHandlers } from '../src/handlers.js';
 import { memoryStore } from '../src/store.js';
+import { TIMINGS } from '../src/constants.js';
 import { GUID } from './fixtures/cloud.js';
 import { createFakePanasonic } from './helpers/fakePanasonic.js';
 import { fastTimers, sleep, waitFor } from './helpers/harness.js';
@@ -182,7 +183,8 @@ test('a refused password: the status says so, and no retry sends it again', asyn
     gladys.fake.connectionStatus?.message?.en?.includes('refused the Panasonic ID'),
   );
   const sent = fake.state.passwordsSent;
-  await sleep(300);
+  // Past the first retry (retryMin at the harness's x20), with margin.
+  await sleep((TIMINGS.retryMin / 20) * 1.3);
   assert.equal(fake.state.passwordsSent, sent);
   const answer = await gladys.fake.action('test_connection');
   assert.match(answer.data.message.fr, /a refusé le Panasonic ID/);
