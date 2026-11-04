@@ -13,6 +13,7 @@ import { HeishamonState } from '../src/heishamon/state.js';
 import { buildDevice, featureSpecs, statesOf, supportedModes, WRITABLE } from '../src/model.js';
 import * as cloud from './fixtures/cloud.js';
 import { BASE, dump, extraBlock } from './fixtures/heishamon.js';
+import { assertCoreDevice } from './helpers/coreFeature.js';
 
 const heishamonSnapshot = (values = dump()) => {
   const state = new HeishamonState(BASE);
@@ -135,4 +136,20 @@ test('the hot water slider never goes above 65 °C, the ceiling, nor the heat pu
   const low = cloud.statusTwoZones();
   low.status.tankStatus.heatMax = 60;
   assert.equal(tankMax(parseStatus(low, { guid: cloud.GUID })), 60);
+});
+
+test('every feature of every snapshot has a numeric min and max and the other core fields', () => {
+  const gladys = createFakeGladys();
+  let features = 0;
+  for (const language of ['en', 'fr']) {
+    for (const tankCap of [undefined, 50]) {
+      for (const [i, s] of snapshots().entries()) {
+        const source = i < 2 ? 'cloud' : 'heishamon';
+        const ids = gladys.externalIds(i < 2 ? 'aquarea' : 'heishamon', `${s.platformId}${i}`);
+        const { device } = buildDevice(ids, s, { language, source, tankCap });
+        features += assertCoreDevice(device, `${source} ${i} ${language}`);
+      }
+    }
+  }
+  assert.ok(features > 40, `${features} features checked`);
 });

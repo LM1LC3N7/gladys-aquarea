@@ -7,7 +7,7 @@
 import { EventEmitter } from 'node:events';
 
 /** Timers `factor` times faster: the app's seconds become milliseconds. */
-export function fastTimers(factor = 100) {
+export function fastTimers(factor = 20) {
   return {
     setTimeout: (fn, ms) => setTimeout(fn, Math.max(1, Math.round(ms / factor))),
     clearTimeout: (t) => clearTimeout(t),

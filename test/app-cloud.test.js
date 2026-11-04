@@ -153,7 +153,7 @@ test('an adapter that does not answer live: the cloud copy, and a degraded badge
   await gladys.fake.deviceCreated(gladys.fake.discoveredDevices[0]);
   await waitFor(() => gladys.fake.transports.at(-1)?.transport === 'cloud');
   fake.state.offline.add(GUID);
-  await waitFor(() => gladys.fake.transports.at(-1)?.degraded === true, 5000, 'degraded badge');
+  await waitFor(() => gladys.fake.transports.at(-1)?.degraded === true, 20_000, 'degraded badge');
   assert.equal(gladys.fake.transports.at(-1).transport, 'cloud');
   assert.match(gladys.fake.transports.at(-1).message.en, /does not answer live/);
   const reads = fake.state.statusCalls.filter((c) => c.guid === GUID);
@@ -211,7 +211,7 @@ test('a heat pump reporting a new error fires the scene trigger', async (t) => {
   fake.state.statuses.get(GUID).status.faultStatus = [
     { errorCode: 'H75', errorMessage: 'Low water temperature' },
   ];
-  await waitFor(() => gladys.fake.sceneEvents.length === 1, 5000, 'scene event');
+  await waitFor(() => gladys.fake.sceneEvents.length === 1, 20_000, 'scene event');
   assert.deepEqual(gladys.fake.sceneEvents[0].data, {
     device: ID,
     code: 'H75',
